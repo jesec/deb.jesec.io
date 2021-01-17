@@ -29,7 +29,7 @@ export default function Page({ children, title }) {
 				}
 
 				.container {
-					max-width: 400px;
+					max-width: 550px;
 					width: 90%;
 					margin: 0 auto;
 				}
