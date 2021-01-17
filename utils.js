@@ -1,5 +1,3 @@
-exports.urlRegexp = /^https:\/\/github.com\/([^\/]+)\/([^\/]+)\/releases\/download\/([^\/]+)\/([^\/]+)$/
-
 exports.getRepoUrl = function getRepoUrl(req) {
 	if (req) {
 		return `${

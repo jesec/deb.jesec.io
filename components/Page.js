@@ -7,7 +7,6 @@ export default function Page({ children, title }) {
 		<>
 			<Head>
 				<title>{title ? `${title} - ${repoName}` : repoName}</title>
-				<link rel="icon" href="/favicon.ico" />
 			</Head>
 			<style jsx global>{`
 				* {

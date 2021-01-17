@@ -14,42 +14,9 @@ export default function Home({ repoURL }) {
 					margin-bottom: 100px;
 				}
 
-				.package-manager {
-					display: flex;
-					align-items: center;
-					color: white;
+				h2 {
 					text-align: center;
-					background-color: #000000;
-					border: 1px solid rgba(255, 255, 255, 0.5);
-					margin: 10px auto;
-					width: 200px;
-					border-radius: 14px;
-					font-size: 20px;
-					text-decoration: none;
-				}
-
-				.package-manager > span {
-					flex-grow: 1;
-					margin-right: 8px;
-				}
-
-				.package-manager::before {
-					content: '';
-					background-repeat: no-repeat;
-					width: 36px;
-					height: 36px;
-					margin: 6px 0 6px 6px;
-					background-size: contain;
-				}
-
-				.package-manager.cydia::before {
-					background-image: url('/assets/package-managers/Cydia.png');
-				}
-				.package-manager.zebra::before {
-					background-image: url('/assets/package-managers/Zebra.png');
-				}
-				.package-manager.sileo::before {
-					background-image: url('/assets/package-managers/Sileo.png');
+					margin-bottom: 100px;
 				}
 
 				.input-container {
@@ -88,19 +55,9 @@ export default function Home({ repoURL }) {
 
 			<h1>{repoName}</h1>
 
-			<a
-				href={`cydia://url/https://cydia.saurik.com/api/share#?source=${repoURL}`}
-				className="package-manager cydia"
-			>
-				<span>Add to Cydia</span>
-			</a>
-			<a href={`zbra://sources/add/${repoURL}`} className="package-manager zebra">
-				<span>Add to Zebra</span>
-			</a>
-			<a href={`sileo://source/${repoURL}`} className="package-manager sileo">
-				<span>Add to Sileo</span>
-			</a>
-			{/* <a href={`installer://add/repo=${repoURL}`}>Add to Installer</a> */}
+			<h2>
+				<a href={`${repoURL}Packages`}>Available Packages</a>
+			</h2>
 
 			<div className="input-container">
 				<input

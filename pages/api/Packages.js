@@ -1,10 +1,6 @@
-import { packages, icons } from '../../loader!../../repo'
-import { getRepoUrl } from '../../utils'
-
-const spaceRegExp = /\s/g
+import { packages } from '../../loader!../../repo'
 
 export default (req, res) => {
-	const url = getRepoUrl(req)
 	const result = []
 	for (const name in packages) {
 		const versions = packages[name]
@@ -14,9 +10,6 @@ export default (req, res) => {
 			for (const entry in p.meta) {
 				strings.push(`${entry}: ${p.meta[entry]}`)
 			}
-
-			icons[name] && strings.push(`Icon: ${url}${icons[name]}`)
-			strings.push(`Depiction: ${url}${name.replace(spaceRegExp, '-')}`)
 
 			result.push(strings.join('\n'))
 		}

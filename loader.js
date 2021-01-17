@@ -8,8 +8,6 @@ const axios = require('axios')
 const gunzipMaybe = require('gunzip-maybe')
 const tar = require('tar-stream')
 
-const { urlRegexp } = require('./utils')
-
 // Create node_modules/.cache folder
 const cacheFolder = path.join(__dirname, 'node_modules', '.cache')
 if (!fs.existsSync(cacheFolder)) {
@@ -41,22 +39,6 @@ function getCacheFileContents() {
 }
 const cache = getCacheFileContents().cache
 let lastWrittenCache = JSON.stringify(cache)
-
-const urlsToAssetId = {}
-
-function getAssetIdForURL(url) {
-	const result = url.match(urlRegexp)
-	if (!result) throw new Error(`Bad URL: ${url}`)
-	const [, owner, repo, tag] = result
-	const options = {}
-	if (process.env.GITHUB_TOKEN) options.headers = { Authorization: `token ${process.env.GITHUB_TOKEN}` }
-	return axios
-		.get(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${tag}`, options)
-		.then(({ data }) => (data.assets.filter((asset) => asset.browser_download_url === url)[0] || {}).id)
-		.catch(({ response }) => {
-			throw new Error(response.statusText)
-		})
-}
 
 function extractControlTarGunzipMaybe(data) {
 	return new Promise((resolve, reject) => {
@@ -123,9 +105,6 @@ async function getMetaForURL(url) {
 		}
 	}
 
-	delete meta.Depiction
-	delete meta.Icon
-
 	// Calculate Size [size of package]
 	meta.Size = data.length
 
@@ -140,6 +119,9 @@ async function getMetaForURL(url) {
 	// Calculate SHA256 of package
 	meta.SHA256 = crypto.createHash('sha256').update(data).digest('hex')
 
+	// Invalidate cache after 2 hours
+	setTimeout(() => (cache[url] = undefined), 2 * 60 * 60 * 1000)
+
 	return meta
 }
 
@@ -148,9 +130,7 @@ module.exports = async function () {
 
 	const packages = await Promise.all(
 		repo.packages.map(async (url) => {
-			const assetId = urlsToAssetId[url] || (urlsToAssetId[url] = await getAssetIdForURL(url))
-			if (!assetId) throw new Error(`Asset with URL ${url} not found`)
-			const meta = cache[assetId] || (cache[assetId] = await getMetaForURL(url))
+			const meta = cache[url] || (cache[url] = await getMetaForURL(url))
 			return { meta, url }
 		}),
 	)
@@ -174,6 +154,5 @@ module.exports = async function () {
 	return `export const packages = ${JSON.stringify(restructuredPackages)};
 export const md5Table = ${JSON.stringify(md5Table)};
 export const name = ${JSON.stringify(repo.name)};
-export const description = ${JSON.stringify(repo.description)};
-export const icons = ${JSON.stringify(repo.icons)};`
+export const description = ${JSON.stringify(repo.description)};`
 }
