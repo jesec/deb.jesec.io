@@ -18,5 +18,9 @@ SHA1:
  ${crypto.createHash('sha1').update(expectedPackages).digest('hex')} ${
 		new TextEncoder().encode(expectedPackages).length
 	} main/binary-amd64/Packages
+SHA256:
+ ${crypto.createHash('sha256').update(expectedPackages).digest('hex')} ${
+		new TextEncoder().encode(expectedPackages).length
+	} main/binary-amd64/Packages
 `)
 }
