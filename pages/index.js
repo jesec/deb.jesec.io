@@ -6,6 +6,7 @@ import { getRepoUrl } from '../utils'
 
 export default function Home({ repoURL }) {
 	const inputRef = useRef()
+	const aptSource = `deb [trusted=yes] ${repoURL} devel main`
 	return (
 		<Page>
 			<style jsx>{`
@@ -20,7 +21,7 @@ export default function Home({ repoURL }) {
 				}
 
 				.input-container {
-					width: 320px;
+					width: 550px;
 					max-width: 90%;
 					position: relative;
 					margin: 32px auto;
@@ -61,21 +62,21 @@ export default function Home({ repoURL }) {
 
 			<div className="input-container">
 				<input
-					value={repoURL}
+					value={aptSource}
 					readOnly
 					ref={inputRef}
 					onClick={() => {
 						inputRef.current.select()
-						inputRef.current.setSelectionRange(0, repoURL.length)
+						inputRef.current.setSelectionRange(0, aptSource.length)
 					}}
 				/>
 				<button
 					onClick={() => {
 						if (navigator.clipboard && navigator.clipboard.writeText) {
-							navigator.clipboard.writeText(repoURL)
+							navigator.clipboard.writeText(aptSource)
 						} else {
 							inputRef.current.select()
-							inputRef.current.setSelectionRange(0, repoURL.length)
+							inputRef.current.setSelectionRange(0, aptSource.length)
 							document.execCommand('copy')
 						}
 					}}
