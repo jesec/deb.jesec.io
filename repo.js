@@ -1,4 +1,6 @@
 exports.name = 'Debian Repository'
 exports.description = 'Debian repository'
 
-exports.packages = ['https://github.com/jesec/rtorrent.deb/releases/latest/download/rtorrent-amd64.deb']
+exports.packages = [
+	'https://decompressor.jesec.workers.dev/?decompress=https://nightly.link/jesec/rtorrent/workflows/publish-rolling/master/rtorrent-deb-amd64.zip',
+]
