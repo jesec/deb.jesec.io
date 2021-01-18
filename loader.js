@@ -119,9 +119,6 @@ async function getMetaForURL(url) {
 	// Calculate SHA256 of package
 	meta.SHA256 = crypto.createHash('sha256').update(data).digest('hex')
 
-	// Invalidate cache after 2 hours
-	setTimeout(() => (cache[url] = undefined), 2 * 60 * 60 * 1000)
-
 	return meta
 }
 
