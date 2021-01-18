@@ -111,13 +111,13 @@ async function getMetaForURL(url) {
 	// Calculate MD5sum of package
 	meta.MD5sum = crypto.createHash('md5').update(data).digest('hex')
 
-	meta.Filename = `api/deb/${meta.MD5sum}.deb`
-
 	// Calculate SHA1 of package
 	meta.SHA1 = crypto.createHash('sha1').update(data).digest('hex')
 
 	// Calculate SHA256 of package
 	meta.SHA256 = crypto.createHash('sha256').update(data).digest('hex')
+
+	meta.Filename = `api/deb/${meta.SHA256}.deb`
 
 	return meta
 }
@@ -139,17 +139,17 @@ module.exports = async function () {
 	}
 
 	const restructuredPackages = {}
-	const md5Table = {}
+	const sha256Table = {}
 
 	for (const p of packages) {
 		// package is a reserved variable name
 		if (!restructuredPackages[p.meta.Name]) restructuredPackages[p.meta.Name] = {}
 		restructuredPackages[p.meta.Name][p.meta.Version] = p
-		md5Table[p.meta.MD5sum] = p.url
+		sha256Table[p.meta.SHA256] = p.url
 	}
 
 	return `export const packages = ${JSON.stringify(restructuredPackages)};
-export const md5Table = ${JSON.stringify(md5Table)};
+export const sha256Table = ${JSON.stringify(sha256Table)};
 export const name = ${JSON.stringify(repo.name)};
 export const description = ${JSON.stringify(repo.description)};`
 }
