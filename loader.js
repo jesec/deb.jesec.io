@@ -87,6 +87,23 @@ function convertControlToObject(control) {
 	return meta
 }
 
+function getPackages(packages) {
+	const result = []
+	for (const name in packages) {
+		const versions = packages[name]
+		for (const version in versions) {
+			const p = versions[version] // package is a reserved variable name
+			const strings = []
+			for (const entry in p.meta) {
+				strings.push(`${entry}: ${p.meta[entry]}`)
+			}
+
+			result.push(strings.join('\n'))
+		}
+	}
+	return result.join('\n\n')
+}
+
 async function getMetaForURL(url) {
 	const { data } = await axios.get(url, { responseType: 'arraybuffer' })
 
@@ -106,6 +123,7 @@ async function getMetaForURL(url) {
 	}
 
 	// Calculate Size [size of package]
+	meta.Filename = ''
 	meta.Size = data.length
 
 	// Calculate MD5sum of package
@@ -148,7 +166,33 @@ module.exports = async function () {
 		sha256Table[p.meta.SHA256] = p.url
 	}
 
-	return `export const packages = ${JSON.stringify(restructuredPackages)};
+	const PackagesData = getPackages(restructuredPackages)
+
+	const Packages = {
+		data: PackagesData,
+		length: new TextEncoder().encode(PackagesData).length,
+		md5: crypto.createHash('md5').update(PackagesData).digest('hex'),
+		sha1: crypto.createHash('sha1').update(PackagesData).digest('hex'),
+		sha256: crypto.createHash('sha256').update(PackagesData).digest('hex'),
+	}
+
+	const Release = `Origin: ${repo.name}
+Label: ${repo.name}
+Suite: devel
+Codename: devel
+Date: ${new Date().toUTCString()}
+Architectures: amd64
+Components: main
+Description: ${repo.description}
+MD5Sum:
+ ${Packages.md5} ${Packages.length} main/binary-amd64/Packages
+SHA1:
+ ${Packages.sha1} ${Packages.length} main/binary-amd64/Packages
+SHA256:
+ ${Packages.sha256} ${Packages.length} main/binary-amd64/Packages`
+
+	return `export const Packages = ${JSON.stringify(Packages)};
+export const Release = ${JSON.stringify(Release)};
 export const sha256Table = ${JSON.stringify(sha256Table)};
 export const name = ${JSON.stringify(repo.name)};
 export const description = ${JSON.stringify(repo.description)};`

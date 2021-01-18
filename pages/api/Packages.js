@@ -1,6 +1,6 @@
-import { getPackages } from '../../utils'
+import { Packages } from '../../loader!../../repo'
 
 export default (req, res) => {
-	res.setHeader('Cache-Control', 's-maxage=31536000')
-	res.end(getPackages())
+	res.setHeader('Cache-Control', 's-maxage=3600')
+	res.end(Packages.data)
 }

@@ -10,6 +10,6 @@ export default (req, res) => {
 		},
 	}
 	Packages(req, fakeRes)
-	res.setHeader('Cache-Control', 's-maxage=31536000')
+	res.setHeader('Cache-Control', 's-maxage=3600')
 	res.end(gzipSync(Buffer.from(fakeRes.end)))
 }
