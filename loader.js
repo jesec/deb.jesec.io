@@ -87,23 +87,6 @@ function convertControlToObject(control) {
 	return meta
 }
 
-function getPackages(packages) {
-	const result = []
-	for (const name in packages) {
-		const versions = packages[name]
-		for (const version in versions) {
-			const p = versions[version] // package is a reserved variable name
-			const strings = []
-			for (const entry in p.meta) {
-				strings.push(`${entry}: ${p.meta[entry]}`)
-			}
-
-			result.push(strings.join('\n'))
-		}
-	}
-	return result.join('\n\n')
-}
-
 async function getMetaForURL(url) {
 	const { data } = await axios.get(url, { responseType: 'arraybuffer' })
 
@@ -140,11 +123,11 @@ async function getMetaForURL(url) {
 	return meta
 }
 
-module.exports = async function () {
-	const repo = require(this.resourcePath)
+const sha256Table = {}
 
+async function getRestructuredPackages(urls) {
 	const packages = await Promise.all(
-		repo.packages.map(async (url) => {
+		urls.map(async (url) => {
 			const meta = cache[url] || (cache[url] = await getMetaForURL(url))
 			return { meta, url }
 		}),
@@ -157,7 +140,6 @@ module.exports = async function () {
 	}
 
 	const restructuredPackages = {}
-	const sha256Table = {}
 
 	for (const p of packages) {
 		// package is a reserved variable name
@@ -166,14 +148,49 @@ module.exports = async function () {
 		sha256Table[p.meta.SHA256] = p.url
 	}
 
-	const PackagesData = getPackages(restructuredPackages)
+	return restructuredPackages
+}
+
+function getPackages(packages) {
+	const result = []
+	for (const name in packages) {
+		const versions = packages[name]
+		for (const version in versions) {
+			const p = versions[version] // package is a reserved variable name
+			const strings = []
+			for (const entry in p.meta) {
+				strings.push(`${entry}: ${p.meta[entry]}`)
+			}
+
+			result.push(strings.join('\n'))
+		}
+	}
+	return result.join('\n\n')
+}
+
+module.exports = async function () {
+	const repo = require(this.resourcePath)
+
+	const PackagesData = {
+		amd64: getPackages(await getRestructuredPackages(repo.packages.amd64)),
+		arm64: getPackages(await getRestructuredPackages(repo.packages.arm64)),
+	}
 
 	const Packages = {
-		data: PackagesData,
-		length: new TextEncoder().encode(PackagesData).length,
-		md5: crypto.createHash('md5').update(PackagesData).digest('hex'),
-		sha1: crypto.createHash('sha1').update(PackagesData).digest('hex'),
-		sha256: crypto.createHash('sha256').update(PackagesData).digest('hex'),
+		amd64: {
+			data: PackagesData.amd64,
+			length: new TextEncoder().encode(PackagesData.amd64).length,
+			md5: crypto.createHash('md5').update(PackagesData.amd64).digest('hex'),
+			sha1: crypto.createHash('sha1').update(PackagesData.amd64).digest('hex'),
+			sha256: crypto.createHash('sha256').update(PackagesData.amd64).digest('hex'),
+		},
+		arm64: {
+			data: PackagesData.arm64,
+			length: new TextEncoder().encode(PackagesData.arm64).length,
+			md5: crypto.createHash('md5').update(PackagesData.arm64).digest('hex'),
+			sha1: crypto.createHash('sha1').update(PackagesData.arm64).digest('hex'),
+			sha256: crypto.createHash('sha256').update(PackagesData.arm64).digest('hex'),
+		},
 	}
 
 	const Release = `Origin: ${repo.name}
@@ -181,15 +198,18 @@ Label: ${repo.name}
 Suite: devel
 Codename: devel
 Date: ${new Date().toUTCString()}
-Architectures: amd64
+Architectures: amd64 arm64
 Components: main
 Description: ${repo.description}
 MD5Sum:
- ${Packages.md5} ${Packages.length} main/binary-amd64/Packages
+ ${Packages.amd64.md5} ${Packages.amd64.length} main/binary-amd64/Packages
+ ${Packages.arm64.md5} ${Packages.arm64.length} main/binary-arm64/Packages
 SHA1:
- ${Packages.sha1} ${Packages.length} main/binary-amd64/Packages
+ ${Packages.amd64.sha1} ${Packages.amd64.length} main/binary-amd64/Packages
+ ${Packages.arm64.sha1} ${Packages.arm64.length} main/binary-arm64/Packages
 SHA256:
- ${Packages.sha256} ${Packages.length} main/binary-amd64/Packages`
+ ${Packages.amd64.sha256} ${Packages.amd64.length} main/binary-amd64/Packages
+ ${Packages.arm64.sha256} ${Packages.arm64.length} main/binary-arm64/Packages`
 
 	return `export const Packages = ${JSON.stringify(Packages)};
 export const Release = ${JSON.stringify(Release)};
