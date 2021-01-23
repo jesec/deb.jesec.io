@@ -37,7 +37,7 @@ function getCacheFileContents() {
 		return emptyCache
 	}
 }
-const cache = getCacheFileContents().cache
+const cache = process.env.NODE_ENV === 'development' ? getCacheFileContents().cache : {}
 let lastWrittenCache = JSON.stringify(cache)
 
 function extractControlTarGunzipMaybe(data) {
