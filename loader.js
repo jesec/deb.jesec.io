@@ -2,6 +2,7 @@ const crypto = require('crypto')
 const fs = require('fs')
 const path = require('path')
 const stream = require('stream')
+const { unzipSync } = require('fflate')
 
 const ar = require('ar')
 const axios = require('axios')
@@ -88,7 +89,14 @@ function convertControlToObject(control) {
 }
 
 async function getMetaForURL(url) {
-	const { data } = await axios.get(url, { responseType: 'arraybuffer' })
+	const { data: response } = await axios.get(url, { responseType: 'arraybuffer' })
+
+	let data = response
+	if (url.endsWith('.zip')) {
+		const unzipped = unzipSync(new Uint8Array(response))
+		const debFile = Object.keys(unzipped).filter((filename) => filename.endsWith('.deb'))[0]
+		data = Buffer.from(unzipped[debFile])
+	}
 
 	const archive = new ar.Archive(data)
 
@@ -129,7 +137,8 @@ async function getRestructuredPackages(urls) {
 	const packages = await Promise.all(
 		urls.map(async (url) => {
 			const meta = cache[url] || (cache[url] = await getMetaForURL(url))
-			return { meta, url }
+			const finalUrl = url.endsWith('.zip') ? `https://decompressor.jesec.workers.dev/?decompress=${url}` : url
+			return { meta, url: finalUrl }
 		}),
 	)
 
