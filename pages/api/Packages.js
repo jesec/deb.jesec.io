@@ -17,6 +17,5 @@ export default (req, res) => {
 		return
 	}
 
-	res.setHeader('Cache-Control', 's-maxage=3600')
 	res.end(Packages[arch].data)
 }
