@@ -137,7 +137,9 @@ async function getRestructuredPackages(urls) {
 	const packages = await Promise.all(
 		urls.map(async (url) => {
 			const meta = cache[url] || (cache[url] = await getMetaForURL(url))
-			const finalUrl = url.endsWith('.zip') ? `https://decompressor.jesec.workers.dev/?decompress=${url}` : url
+			const finalUrl = url.endsWith('.zip')
+				? `https://decompressor.jesec.workers.dev/?decompress=${url}`
+				: `https://relay.jesec.workers.dev/?url=${url}`
 			return { meta, url: finalUrl }
 		}),
 	)
